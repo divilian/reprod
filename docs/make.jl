@@ -2,10 +2,10 @@
 using Documenter
 
 include("../src/odCommon.jl")
-include("../bvm/src/bvm.jl")
+include("../src/bvm/bvm.jl")
 
 push!(LOAD_PATH, "../src")
-push!(LOAD_PATH, "../bvm/src")
+push!(LOAD_PATH, "../src/bvm")
 
 makedocs(
     sitename = "reprod (Reproducible Opinion Dynamics)",
