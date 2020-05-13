@@ -60,7 +60,6 @@ graph. Continue until convergence (uniformity of opinion) is reached.
 function run_sim(n=20, p=0.2, influencer=false, replacement=false;
     verbose=true, make_anim=false)
 
-    save_dir = pwd()
     graph = odCommon.make_graph(n, p)
     node_list = Array(vertices(graph))
     n = nv(graph)
@@ -119,11 +118,9 @@ function run_sim(n=20, p=0.2, influencer=false, replacement=false;
     if make_anim
         if verbose println("Building animation...") end
         run(`convert -delay 15 graph*.svg graph.gif`)
-        if verbose println("...animation in $(tempdir())/graph.gif.") end
+        if verbose println("...animation in graph.gif.") end
     end
 
-    #return to user's original directory
-    cd(save_dir)
     return iter
 end
 
