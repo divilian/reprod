@@ -36,8 +36,9 @@ using Statistics
 
 
 """
-    function run_sim(n=20, p=0.2, influencer=false, replacement=false;
-        verbose=true, make_anim=false)
+    function run_sim(n::Integer=20, p::Float64=0.2,
+        influencer::Bool=false, replacement::Bool=false;
+        verbose::Bool=true, make_plots::Bool=true, make_anim::Bool=false)
 
 Run a single simulation of the Binary Voter Model on a randomly-generated
 graph. Continue until convergence (uniformity of opinion) is reached.
@@ -52,13 +53,20 @@ graph. Continue until convergence (uniformity of opinion) is reached.
 
 - `verbose`: if `true`, print output showing progress of simulation.
 
+- `make_plots`: if `true`, saves a time series plot of the simulation.
+
 - `make_anim`: if `true`, saves an animated gif of the simulation.
 
 # Returns
-- the number of iterations until convergence in this simulation.
+a tuple of values:
+- a status message (`String`)
+- a DataFrame of results with columns:
+  - `:iter`: Iteration number
+  - `:frac_red`: The fraction of nodes that had the Red opinion
 """
-function run_sim(n=20, p=0.2, influencer=false, replacement=false;
-    verbose=true, make_anim=false)
+function run_sim(n::Integer=20, p::Float64=0.2,
+    influencer::Bool=false, replacement::Bool=false;
+    verbose::Bool=true, make_plots::Bool=true, make_anim::Bool=false)
 
     graph = odCommon.make_graph(n, p)
     node_list = Array(vertices(graph))
@@ -92,7 +100,7 @@ function run_sim(n=20, p=0.2, influencer=false, replacement=false;
         end
 
         if make_anim
-            make_graph_anim(graph, agent_list, iter)
+            odCommon.draw_graph_frame(graph, agent_list, iter)
         end
         #checks to see if all agents have one opinion yet, if not continue sim
         uniform = true
@@ -113,15 +121,28 @@ function run_sim(n=20, p=0.2, influencer=false, replacement=false;
     end
     if verbose println(iter) end
     #saves and shows a plot of the percent of agents with red opinion for each iteration
-    display(Plots.plot(1:length(percent_red_list),percent_red_list, title="percent red opinion for each iteration", xlabel="number of iterations",ylabel="percent red opinion",seriescolor = :red))
-    savefig("per_red_plot.svg")
+    if make_plots
+        savefig("per_red_plot.svg")
+        display(Plots.plot(
+            1:length(percent_red_list),
+            percent_red_list,
+            title="percent red opinion for each iteration",
+            xlabel="number of iterations",
+            ylabel="percent red opinion",
+            seriescolor = :red)
+        )
+    end
     if make_anim
         if verbose println("Building animation...") end
-        run(`convert -delay 15 graph*.svg graph.gif`)
+        run(`convert -size 800X600 -delay 15 graph*.svg graph.gif`)
         if verbose println("...animation in graph.gif.") end
     end
 
-    return iter
+    return ("Completed $(length(percent_red_list)) iterations.",
+        DataFrame(:iter => 1:length(percent_red_list),
+            :frac_red => percent_red_list)
+    )
+
 end
 
 

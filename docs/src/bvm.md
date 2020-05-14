@@ -9,7 +9,7 @@ CurrentModule = bvm
 ```
 
 ```@docs
-run_sim(n=20, p=0.2, influencer=false, replacement=false; verbose=true, make_anim=false)
+run_sim(n::Integer=20, p::Float64=0.2, influencer::Bool=false, replacement::Bool=false; verbose::Bool=true, make_plots::Bool=true, make_anim::Bool=false)
 param_sweep(num_runs=10, this_n=20, this_p=0.2, influencer=false, replacement=false)
 conf_int_sweep(num_trials=10, this_n=20, influencer=false, replacement=false)
 ```
