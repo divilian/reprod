@@ -1,0 +1,9 @@
+
+h1 { font-weight:bold; }
+.widgets > * { vertical-align:middle; }
+
+.inputs-div { float:left; width:30%; }
+.outputs-div { margin-left:30%; }
+#status-msg { text-align:center; font-size:small; }
+/* .widgets > * { display:inline-block; } 
+.widgets { text-align:center; } */
