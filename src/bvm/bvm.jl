@@ -16,7 +16,7 @@ include("../odCommon.jl")
 
 using .odCommon
 
-export run_sim, param_sweep, conf_int_sweep
+export run_sim, run_sims, param_sweep, conf_int_sweep
 
 # FIX: some of these are likely not needed after refactoring to odCommon.
 using LightGraphs
@@ -142,7 +142,20 @@ function run_sim(n::Integer=20, p::Float64=0.2,
         DataFrame(:iter => 1:length(percent_red_list),
             :frac_red => percent_red_list)
     )
+end
 
+
+function run_sims(num_trials::Integer=10, n::Integer=20, p::Float64=0.2,
+    influencer::Bool=false, replacement::Bool=false;
+    verbose::Bool=false, make_plots::Bool=true)
+
+    raw_results = [ run_sim(n, p, influencer, replacement; verbose=verbose,
+        make_anim=false, make_plots=make_plots)[2] for i in 1:num_trials]
+    return "Completed $num_trials trials.", 
+        rename(
+            reduce(vcat, [ hcat(r,repeat([i],nrow(r)),copycols=false)
+                    for (i, r) in enumerate(raw_results) ]),
+            :x1=>:trial)
 end
 
 

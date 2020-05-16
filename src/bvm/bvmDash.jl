@@ -13,11 +13,9 @@ external_stylesheets = [
 
 app = dash("Binary Voter Model", external_stylesheets=external_stylesheets)
 
-app.layout = html_div(id="top") do
-    html_h1("Binary Voter Model"),
-
-    html_div(id="inputs-div") do
-        html_div(id="er-outer-div") do
+function inputs(button_name, button_id)
+    html_div(className="inputs-div") do
+        html_div(id="outer-div") do
             html_h3("Erdos-Renyi graph parameters"),
             html_div(id="er-div", className="widgets") do
                 html_span("N"),
@@ -67,15 +65,36 @@ app.layout = html_div(id="top") do
                 html_span("replacement")
             end
         end,
-        html_button("Run sim", id="run-sim")
-    end,
-    html_div(id="outputs-div") do
-        dcc_graph(
-            id="time-series-plot",
-        ),
-        html_p("", id="status-msg")
+        html_button(button_name, id=button_id)
     end
 end
+
+
+app.layout = html_div(id="top") do
+    html_h1("Binary Voter Model"),
+
+    dcc_tabs(value="single-run-tab") do
+        dcc_tab(label="Single run",value="single-run-tab") do
+            inputs("Run single sim", "run-sim"),
+            html_div(id="single-outputs-div") do
+                dcc_graph(
+                    id="time-series-plot",
+                ),
+                html_p("", id="status-msg")
+            end
+        end,
+        dcc_tab(label="Multiple runs",value="multi-run-tab") do
+            inputs("Run suite", "run-suite"),
+            html_div(id="multi-outputs-div") do
+                dcc_graph(
+                    id="time-series-plots",
+                ),
+                html_p("", id="status-msg2")
+            end
+        end
+    end
+end
+
 
 callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, replacement.value => status-msg.children, time-series-plot.figure") do n_clicks, n, p, influencer, replacement
 
@@ -83,7 +102,8 @@ callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, repl
         return
     end
     msg, results = bvm.run_sim(n, p, influencer == "nodeInfluencer",
-        replacement == "replacement"; make_plots=false, make_anim=false)
+        replacement == "replacement"; verbose=false, make_plots=false,
+        make_anim=false)
     return (msg,
         Dict(
             "data" => [
@@ -102,4 +122,27 @@ callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, repl
     )
 end
 
+callback!(app, callid"run-suite.n_clicks, n.value, p.value, influencer.value, replacement.value => status-msg2.children, time-series-plots.figure") do n_clicks, n, p, influencer, replacement
+    if isnothing(n)
+        return
+    end
+    msg, results = bvm.run_sims(10, n, p, influencer == "nodeInfluencer",
+        replacement == "replacement"; verbose=false, make_plots=false)
+    return (msg,
+        Dict(
+            "data" => [
+                Dict("x" => @where(results,:trial.==t).iter,
+                     "y" => @where(results,:trial.==t).frac_red,
+                     "mode" => "lines",
+                     "type" => "scatter",
+                     "marker" => Dict("color"=>"darkred")
+                ) for t in unique(results.trial)
+            ],
+            "layout" => Dict("title"=>"Fraction with red opinion",
+                             "showlegend" => false,
+                             "xaxis"=>Dict("title"=>"Iteration #"),
+                             "yaxis" => Dict("range"=>[0.0,1.0]))
+        )
+    )
+end
 run_server(app, "127.0.0.1", 8087)
