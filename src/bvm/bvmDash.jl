@@ -84,6 +84,22 @@ app.layout = html_div(id="top") do
             end
         end,
         dcc_tab(label="Multiple runs",value="multi-run-tab") do
+            html_span("Number of trials"),
+            dcc_input(
+                id="num_trials",
+                type="number",
+                min=1, max=50, step=1,
+                value=20,
+                style=Dict("width" => "80px")
+            ),
+            html_span("Number of iterations per trial"),
+            dcc_input(
+                id="num_iters",
+                type="number",
+                min=200, max=5000, step=1,
+                value=1000,
+                style=Dict("width" => "80px")
+            ),
             inputs("Run suite", "run-suite"),
             html_div(id="multi-outputs-div") do
                 dcc_graph(
@@ -122,12 +138,13 @@ callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, repl
     )
 end
 
-callback!(app, callid"run-suite.n_clicks, n.value, p.value, influencer.value, replacement.value => status-msg2.children, time-series-plots.figure") do n_clicks, n, p, influencer, replacement
+callback!(app, callid"run-suite.n_clicks, n.value, p.value, influencer.value, replacement.value, num_trials.value, num_iters.value => status-msg2.children, time-series-plots.figure") do n_clicks, n, p, influencer, replacement, num_trials, num_iters
     if isnothing(n)
         return
     end
-    msg, results = bvm.run_sims(10, n, p, influencer == "nodeInfluencer",
-        replacement == "replacement"; verbose=false, make_plots=false)
+    msg, results = bvm.run_sims(num_trials, n, p,
+        influencer == "nodeInfluencer", replacement == "replacement";
+        fixed_iters=true, num_iters=num_iters, verbose=false, make_plots=false)
     return (msg,
         Dict(
             "data" => [
