@@ -51,6 +51,10 @@ graph. Continue until convergence (uniformity of opinion) is reached.
 
 - `replacement`: if `true`, puts back the last randomly selected node in the list of next nodes that can be selected. If `false`, takes out the last randomly selected node from the list of next nodes that can be selected.
 
+- `fixed_iters`: if `true`, run simulation for exactly `num_iters` iterations. If `false` (the default), run until all agents have the same opinion.
+
+- `num_iters`: meaningful only if `fixed_iters` is `true`.
+
 - `verbose`: if `true`, print output showing progress of simulation.
 
 - `make_plots`: if `true`, saves a time series plot of the simulation.
@@ -66,6 +70,7 @@ a tuple of values:
 """
 function run_sim(n::Integer=20, p::Float64=0.2,
     influencer::Bool=false, replacement::Bool=false;
+    fixed_iters::Bool=false, num_iters::Integer=500,
     verbose::Bool=true, make_plots::Bool=true, make_anim::Bool=false)
 
     graph = odCommon.make_graph(n, p)
@@ -86,7 +91,8 @@ function run_sim(n::Integer=20, p::Float64=0.2,
     use_agent_list = copy(agent_list)
 
     #runs the sim until the all agents have one opinion
-    while uniform == false
+    while (fixed_iters && iter <= num_iters) ||
+        (!fixed_iters && uniform == false)
         #saves the percent of agents with red opinion for each iteration
         num_red = count_opinions(agent_list, odCommon.Red)
         percent_red = num_red/n
@@ -147,9 +153,11 @@ end
 
 function run_sims(num_trials::Integer=10, n::Integer=20, p::Float64=0.2,
     influencer::Bool=false, replacement::Bool=false;
+    fixed_iters::Bool=false, num_iters::Integer=500,
     verbose::Bool=false, make_plots::Bool=true)
 
     raw_results = [ run_sim(n, p, influencer, replacement; verbose=verbose,
+        fixed_iters=fixed_iters, num_iters=num_iters,
         make_anim=false, make_plots=make_plots)[2] for i in 1:num_trials]
     return "Completed $num_trials trials.", 
         rename(
