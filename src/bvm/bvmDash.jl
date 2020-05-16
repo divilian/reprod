@@ -14,7 +14,7 @@ external_stylesheets = [
 app = dash("Binary Voter Model", external_stylesheets=external_stylesheets)
 
 function inputs(button_name, button_id)
-    html_div(className="inputs-div") do
+    html_div(className="common-inputs-div") do
         html_div(id="outer-div") do
             html_h3("Erdos-Renyi graph parameters"),
             html_div(id="er-div", className="widgets") do
@@ -22,8 +22,8 @@ function inputs(button_name, button_id)
                 dcc_input(
                     id="n",
                     type="number",
-                    min=10, max=50, step=1,
-                    value=10,
+                    min=10, max=100, step=1,
+                    value=40,
                     style=Dict("width" => "80px")
                 ),
                 html_span("p"),
@@ -75,8 +75,10 @@ app.layout = html_div(id="top") do
 
     dcc_tabs(value="single-run-tab") do
         dcc_tab(label="Single run",value="single-run-tab") do
-            inputs("Run single sim", "run-sim"),
-            html_div(id="single-outputs-div") do
+            html_div(className="inputs-div") do
+                inputs("Run single sim", "run-sim")
+            end,
+            html_div(id="single-outputs-div", className="outputs-div") do
                 dcc_graph(
                     id="time-series-plot",
                 ),
@@ -84,24 +86,26 @@ app.layout = html_div(id="top") do
             end
         end,
         dcc_tab(label="Multiple runs",value="multi-run-tab") do
-            html_span("Number of trials"),
-            dcc_input(
-                id="num_trials",
-                type="number",
-                min=1, max=50, step=1,
-                value=20,
-                style=Dict("width" => "80px")
-            ),
-            html_span("Number of iterations per trial"),
-            dcc_input(
-                id="num_iters",
-                type="number",
-                min=200, max=5000, step=1,
-                value=1000,
-                style=Dict("width" => "80px")
-            ),
-            inputs("Run suite", "run-suite"),
-            html_div(id="multi-outputs-div") do
+            html_div(className="inputs-div") do
+                inputs("Run suite", "run-suite"),
+                html_span("# trials"),
+                dcc_input(
+                    id="num_trials",
+                    type="number",
+                    min=1, max=50, step=1,
+                    value=20,
+                    style=Dict("width" => "80px")
+                ),
+                html_span("# iterations"),
+                dcc_input(
+                    id="num_iters",
+                    type="number",
+                    min=200, max=5000, step=100,
+                    value=1000,
+                    style=Dict("width" => "80px")
+                )
+            end,
+            html_div(id="multi-outputs-div", className="outputs-div") do
                 dcc_graph(
                     id="time-series-plots",
                 ),
