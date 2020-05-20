@@ -8,6 +8,9 @@
 # Holley, R. A., & Liggett, T. M. (1975). Ergodic theorems for weakly
 # interacting infinite systems and the voter model. The Annals of Probability,
 # 643–663. http://dx.doi.org/10.1214/aop/1176996306
+#
+# Important: on Ubuntu, you must install *inkscape* as well as ImageMagick for
+# animated images to be created!   sudo apt-get install inkscape
 
 module bvm
 
@@ -140,6 +143,8 @@ function run_sim(n::Integer=20, p::Float64=0.2,
     end
     if make_anim
         if verbose println("Building animation...") end
+        # Important: on Ubuntu, you must install *inkscape* as well as
+        # ImageMagick for this to work!
         run(`convert -size 800X600 -delay 15 graph*.svg graph.gif`)
         if verbose println("...animation in graph.gif.") end
     end
