@@ -23,7 +23,7 @@ function inputs(button_name, button_id)
                     id="n",
                     type="number",
                     min=10, max=100, step=1,
-                    value=40,
+                    value=10,
                     style=Dict("width" => "80px")
                 ),
                 html_span("p"),
@@ -76,9 +76,19 @@ app.layout = html_div(id="top") do
     dcc_tabs(value="single-run-tab") do
         dcc_tab(label="Single run",value="single-run-tab") do
             html_div(className="inputs-div") do
-                inputs("Run single sim", "run-sim")
+                inputs("Run single sim", "run-sim"),
+                dcc_checklist(id="generate-anim",
+                    options=[
+                        Dict("label" => "show animated graph", "value" => "gen")
+                    ],
+                    value=[],
+                    labelStyle=Dict("display" => "inline-block")
+                )  
             end,
             html_div(id="single-outputs-div", className="outputs-div") do
+                html_img(
+                    id="animated-graph",
+                ),
                 dcc_graph(
                     id="time-series-plot",
                 ),
@@ -116,14 +126,14 @@ app.layout = html_div(id="top") do
 end
 
 
-callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, replacement.value => status-msg.children, time-series-plot.figure") do n_clicks, n, p, influencer, replacement
+callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, replacement.value, generate-anim.value => status-msg.children, time-series-plot.figure, animated-graph.src") do n_clicks, n, p, influencer, replacement, generate
 
     if isnothing(n)
         return
     end
     msg, results = bvm.run_sim(n, p, influencer == "nodeInfluencer",
-        replacement == "replacement"; verbose=false, make_plots=false,
-        make_anim=false)
+        replacement == "replacement"; verbose=true, make_plots=false,
+        make_anim= "gen" ∈ generate)
     return (msg,
         Dict(
             "data" => [
@@ -138,7 +148,8 @@ callback!(app, callid"run-sim.n_clicks, n.value, p.value, influencer.value, repl
             "layout" => Dict("title"=>"Fraction with red opinion",
                              "xaxis"=>Dict("title"=>"Iteration #"),
                              "yaxis" => Dict("range"=>[0.0,1.0]))
-        )
+        ),
+        "http://stephendavies.org/graph.gif"
     )
 end
 
@@ -166,4 +177,6 @@ callback!(app, callid"run-suite.n_clicks, n.value, p.value, influencer.value, re
         )
     )
 end
+println("Starting server...")
 run_server(app, "127.0.0.1", 8087)
+println("...done")

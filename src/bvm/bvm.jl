@@ -93,9 +93,13 @@ function run_sim(n::Integer=20, p::Float64=0.2,
     use_node_list = copy(node_list)
     use_agent_list = copy(agent_list)
 
+    locs_x = nothing
+    locs_y = nothing
+
     #runs the sim until the all agents have one opinion
     while (fixed_iters && iter <= num_iters) ||
         (!fixed_iters && uniform == false)
+
         #saves the percent of agents with red opinion for each iteration
         num_red = count_opinions(agent_list, odCommon.Red)
         percent_red = num_red/n
@@ -109,7 +113,13 @@ function run_sim(n::Integer=20, p::Float64=0.2,
         end
 
         if make_anim
-            odCommon.draw_graph_frame(graph, agent_list, iter)
+            if isnothing(locs_x)
+                locs_x, locs_y = odCommon.draw_graph_frame(
+                    graph, agent_list, iter)
+            else
+                locs_x, locs_y = odCommon.draw_graph_frame(
+                    graph, agent_list, iter, locs_x, locs_y)
+            end
         end
         #checks to see if all agents have one opinion yet, if not continue sim
         uniform = true

@@ -6,6 +6,7 @@ include("agent.jl")
 using ColorSchemes, Colors
 using Glob
 using LightGraphs
+using GraphPlot, Compose
 
 """
     function make_graph(n=20, p=0.2)
@@ -63,26 +64,31 @@ function set_opinion(graph, node_list, agent_list, random_influencer::Bool,
     end
 end
 
+# Create one .svg file for the current frame of the graph animation. Use the
+# previous frame's node layout as a starting point, if it exists.
+function draw_graph_frame(graph, agent_list, iter,
+    previous_locs_x=nothing,
+    previous_locs_y=nothing)
 
-# Create one .svg file for the current frame of the graph animation.
-# FIX: remember_layout no longer being rememberd?
-function draw_graph_frame(graph, agent_list, iter)
-    locs_x, locs_y = spring_layout(graph)
     # remember and reuse graph layout for each animation frame
-    remember_layout = x -> spring_layout(x, locs_x, locs_y)
+    if isnothing(previous_locs_x)
+        previous_locs_x, previous_locs_y = spring_layout(graph)
+    end
+    layout = x -> spring_layout(x, previous_locs_x, previous_locs_y)
     # plot this frame of animation to a file
     graphp = gplot(graph,
-        layout=remember_layout,
+        layout=layout,
         NODESIZE=.08,
         nodestrokec=colorant"grey",
         nodestrokelw=.5,
-        nodefillc=[ ifelse(a.opinion==Blue::Opinion,colorant"blue",
-            colorant"red") for a in agent_list ])
-    draw(SVG("$(store_dir)/graph$(lpad(string(iter),3,'0')).svg"),
-        graphp)
+        nodefillc=[ ifelse(a.opinion_array[1]==Blue::Opinion,colorant"blue",
+            colorant"red") for a in agent_list ]
+    )
+    draw(SVG("graph$(lpad(string(iter),3,'0')).svg"), graphp)
+#println("about to run: mogrify -format svg -gravity South -pointsize 15 -annotate 0 \"Iteration $(iter) \" graph\"$(lpad(string(iter),3,'0')).svg")
     run(`mogrify -format svg -gravity South -pointsize 15 -annotate 0
-        "Iteration $(iter) "
-        "$(store_dir)/graph"$(lpad(string(iter),3,'0')).svg`)
+        "Iteration $(iter) graph$(lpad(string(iter),3,'0'))".svg`)
+    return previous_locs_x, previous_locs_y
 end
 
 end # module odCommon
